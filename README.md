@@ -5,8 +5,8 @@
 ## 목차
 1. [프로젝트 개요](#프로젝트-개요)  
 2. [ABSA 라벨링 전략](#ABSA-라벨링-전략)    
-3. [모델 학습 (LSTM & Bi-LSTM+Attention)](#모델-학습-LSTM--Bi-LSTMAttention)  
-4. [실시간 추천 대시보드 (Streamlit)](#실시간-추천-대시보드-Streamlit)
+3. [모델 학습 (LSTM & Bi-LSTM+Attention)](#모델-아키텍처)  
+4. [실시간 추천 대시보드 (Streamlit)](#추천-로직)
    
 
 ## 프로젝트 개요
