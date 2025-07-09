@@ -4,9 +4,12 @@
 모델학습 및 추천 
 ## 목차
 1. [프로젝트 개요](#프로젝트-개요)  
-2. [ABSA 라벨링 전략](#ABSA-라벨링-전략)    
-3. [모델 학습 (LSTM & Bi-LSTM+Attention)](#모델-아키텍처)  
-4. [실시간 추천 대시보드 (Streamlit)](#추천-로직)
+2. [ABSA 라벨링 전략](#absa-라벨링-전략)    
+3. [모델 아키텍처 (LSTM & Bi-LSTM+Attention)](#모델-아키텍처-lstm--bi-lstmattention)  
+4. [Zero-shot + BERT 기반 ABSA](#zero-shot--bert-기반-absa)  
+5. [임계치(Threshold)](#임계치threshold)  
+6. [벡터화](#실제-변환해서-원본에-붙이기벡터화)  
+7. [실시간 대시보드 (Streamlit)](#실시간-대시보드-streamlit)
    
 
 ## 프로젝트 개요
@@ -35,6 +38,68 @@
 positive_words = ['좋다', '좋아요', '촉촉하다', '만족', '개선', '진정됐다', '괜찮다', '흡수', '효과', '추천''👍','❤️','😁','강추','합격','맛집','재구매']
 negative_words = ['별로', '자극적', '트러블났다', '건조하다', '따갑다', '효과없다', '불편하다', '뒤집어짐', '실망', '아쉬워','피로감을 느끼다','과하다','여드름']
 ```
+
+
+
+## Zero-shot Text Classification
+
+별도의 도메인별 학습 없이, 사전 학습된 언어 모델의 자연어 이해(NLU) 능력만으로 화장품 리뷰 데이터를 자동 분류하는 **Zero-shot Classification** 방식을 채택했습니다.  
+사용 모델: [typeform/distilbert-base-uncased-mnli](https://huggingface.co/typeform/distilbert-base-uncased-mnli)
+
+- ✅ **Zero-shot Classification**  
+  - 학습 데이터가 전혀 없거나 부족한 상황에서도, 미리 다양한 장르의 텍스트(뉴스·위키·질의응답 등)로 학습된 NLI(Natural Language Inference) 모델을 활용해 즉시 분류  
+  - “이 문장은 미백_긍정인가요?” 같은 자연어 형태의 후보 레이블을 모델에 전달하고, **상호함의(entailment)** 점수를 통해 판단  
+
+- ✅ **멀티라벨 분류 지원**  
+  - 하나의 리뷰에 ‘미백’, ‘보습’, ‘트러블’ 등 여러 속성과 긍정·중립·부정 감정이 동시에 나타날 수 있는 ABSA(Aspect-Based Sentiment Analysis) 시나리오 대응  
+  - `multi_label=True` 옵션으로 각 레이블에 대해 독립적인 sigmoid 확률 계산  
+
+- ✅ **효과 및 감정 라벨링 구성**  
+  - 총 5개 속성 × 3개 감정 = **15개 클래스**  
+    - 속성: 미백, 보습, 트러블, 피부 보호, 노화 방지  
+    - 감정: 긍정, 중립, 부정  
+  - 예시:  
+    - “이 크림은 촉촉한데 미백 효과도 느껴져요” → `보습_긍정`, `미백_긍정`  
+    - “트러블이 더 심해졌어요” → `트러블_부정`  
+
+- ⚙️ **구현 요약**  
+  1. **Pipeline 초기화**  
+     ```python
+     classifier = pipeline(
+         "zero-shot-classification",
+         model="typeform/distilbert-base-uncased-mnli",
+         device=device_id,     # CUDA가 감지되지 않아 현재 CPU 모드로 실행됨
+         multi_label=True
+     )
+     ```  
+  2. **후처리**  
+     ```python
+     threshold = 0.5
+     out = classifier(text, candidate_labels=labels)
+     result = {lab: int(score > threshold)
+               for lab, score in zip(out['labels'], out['scores'])}
+     ```  
+  3. **배치 처리 & 파일 자동화**  
+     - `glob`으로 한 폴더 내 리뷰 CSV 파일 일괄 탐색  
+     - `batch_size` 단위로 묶어 처리 → 속도 수십 배 개선  
+
+- 💻 **실행 환경**  
+  - `torch.cuda.is_available()` 결과 **False**, GPU 미사용 → **CPU 모드**로만 동작  
+  - 배치 처리 최적화로 CPU에서도 처리 시간을 최대한 단축  
+
+- 🎯 **장점**  
+  - 초기 라벨링 비용 없이 **즉시 사용** 가능  
+  - 새로운 속성·감정 라벨 추가 시 **모델 재학습 불필요**  
+  - 프로토타입 단계에서 빠르게 **결과 검증**
+
+- ⚠️ **유의사항**  
+  - GPU가 없는 환경에서는 속도가 느릴 수 있으므로, **배치 호출**을 반드시 적용  
+  - 완전한 지도 학습 전용 분류기만큼 성능이 보장되지 않음  
+
+Zero-shot Classification 기반 시스템을 통해, 라벨링 리소스가 제한된 환경에서도 **유연하고 확장 가능한** 리뷰 감성 분석 파이프라인을 구축  
+![image](https://github.com/user-attachments/assets/61329148-7745-45bd-ac68-80cba9c20f94)
+
+
 
 ### 임계치(Threshold)
 
