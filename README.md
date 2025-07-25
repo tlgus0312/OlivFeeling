@@ -5,10 +5,9 @@
 ## 목차
 1. [프로젝트 개요](#프로젝트-개요)  
 2. [ABSA 라벨링 전략](#absa-라벨링-전략)    
-3. [모델 아키텍처 (LSTM & Bi-LSTM+Attention)](#모델-아키텍처-lstm--bi-lstmattention)  
-4. [임계치(Threshold)](#임계치threshold)  
-5. [벡터화](#실제-변환해서-원본에-붙이기벡터화)  
-6. [실시간 대시보드 (Streamlit)](#실시간-대시보드-streamlit)
+3. [임계치(Threshold)](#임계치threshold)
+4. [모델 아키텍처 (LSTM & Bi-LSTM+Attention)](#모델-아키텍처-lstm--bi-lstmattention)
+5. [실시간 대시보드 (Streamlit)](#실시간-대시보드-streamlit)
    
 
 ## 프로젝트 개요
