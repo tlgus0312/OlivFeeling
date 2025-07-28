@@ -97,7 +97,7 @@ def fast_convert_label_to_vector(label_series):
 
 
 # 모델 학습
-## 모델 아키텍처
+## 모델-아키텍처 lstm  bi lstmattention
 
 ### 1) 기본 LSTM 모델
 #### 단방향 빠른 학습
@@ -163,7 +163,7 @@ model.compile(
 #### 리뷰 텍스트(문장)를 숫자 시퀀스로 변환하고, 모든 시퀀스의 길이를 동일하게 맞춰주는 과정
 #### 공개된 한국어 Word2Vec, FastText, 또는 KoBERT, KR-BERT 같은 모델의 임베딩을 가져와서, 모델의 첫 번째 Embedding 레이어에 적용이 필요하다는 것을 느낌
 
-## 실시간 대시보드 
+## 실시간-대시보드 streamlit 
 ### 추천 로직
 ![250624 시연](https://github.com/user-attachments/assets/02a85b57-83e3-4783-8937-b21649b68fd3)
 
